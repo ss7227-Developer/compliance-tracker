@@ -1,0 +1,47 @@
+# Production override — use with:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up
+#
+# Requirements:
+#   - Set DATABASE_URL to your RDS PostgreSQL endpoint
+#   - Set CELERY_BROKER_URL=sqs:// for AWS SQS
+#   - Set AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION
+#   - Set DJANGO_SECRET_KEY to a strong random value
+#   - Set DJANGO_DEBUG=False
+
+version: "3.9"
+
+services:
+  db:
+    # Disabled in production — use AWS RDS instead
+    profiles:
+      - local-only
+
+  redis:
+    # Disabled in production — use AWS SQS as Celery broker instead
+    profiles:
+      - local-only
+
+  api:
+    restart: always
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-sqs://}
+      DJANGO_DEBUG: "False"
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
+      S3_RAW_BUCKET: ${S3_RAW_BUCKET}
+
+  celery:
+    restart: always
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-sqs://}
+      DJANGO_DEBUG: "False"
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
+      S3_RAW_BUCKET: ${S3_RAW_BUCKET}
