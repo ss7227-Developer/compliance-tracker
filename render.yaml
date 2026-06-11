@@ -16,7 +16,9 @@ services:
         value: ".onrender.com"
       - key: CORS_ALLOWED_ORIGINS
         value: ""
-    databases:
-      - name: compliance-db
-        databaseName: compliance_db
-        user: compliance_user
+
+databases:
+  - name: compliance-db
+    databaseName: compliance_db
+    user: compliance_user
+    plan: free
