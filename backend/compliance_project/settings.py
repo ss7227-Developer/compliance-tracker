@@ -124,3 +124,24 @@ AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
 AWS_DEFAULT_REGION = os.environ.get("AWS_DEFAULT_REGION", "us-east-1")
 S3_RAW_BUCKET = os.environ.get("S3_RAW_BUCKET", "compliance-tracker-raw-fda-data")
+
+if os.environ.get("DJANGO_DEBUG", "True") == "False":
+    DEBUG = False
+    ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",") + ["localhost"]
+
+    import dj_database_url
+    DATABASES["default"] = dj_database_url.config(conn_max_age=600, conn_health_checks=True)
+
+    MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
+    STATIC_ROOT = BASE_DIR / "staticfiles"
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+    INSTALLED_APPS += ["corsheaders"]
+    MIDDLEWARE.insert(0, "corsheaders.middleware.CorsMiddleware")
+    cors_origins = os.environ.get("CORS_ALLOWED_ORIGINS", "")
+    CORS_ALLOWED_ORIGINS = [o.strip() for o in cors_origins.split(",") if o.strip()]
+    CORS_ALLOW_ALL_ORIGINS = not bool(CORS_ALLOWED_ORIGINS)
+
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
